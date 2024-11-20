@@ -1,0 +1,34 @@
+﻿@model HorariosIPBejaMVC.ViewModels.NovoAnoLetivoViewModel
+
+@{
+    ViewData["Title"] = "Novo Ano Letivo";
+}
+
+<h1>Criar Novo Ano Letivo</h1>
+
+<form asp-action="NovoAnoLetivo" method="post">
+    <div class="form-group">
+        <label asp-for="Descricao"></label>
+        <input asp-for="Descricao" class="form-control" />
+        <span asp-validation-for="Descricao" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="DataInicio"></label>
+        <input asp-for="DataInicio" type="date" class="form-control" />
+        <span asp-validation-for="DataInicio" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="DataFim"></label>
+        <input asp-for="DataFim" type="date" class="form-control" />
+        <span asp-validation-for="DataFim" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Criar Ano Letivo</button>
+</form>
+
+<a asp-action="Index">Voltar</a>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
