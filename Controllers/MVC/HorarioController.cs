@@ -199,20 +199,28 @@ namespace HorariosIPBejaMVC.Controllers
             {
                 DiasDaSemana = new List<string> { "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira" },
                 Periodos = new List<string>
-                {
-                    "08:30 - 09:30",
-                    "09:30 - 10:30",
-                    "10:30 - 11:30",
-                    "11:30 - 12:30",
-                    "12:30 - 13:30",
-                    "13:30 - 14:30",
-                    "14:30 - 15:30",
-                    "15:30 - 16:30",
-                    "16:30 - 17:30",
-                    "17:30 - 18:30"
-                },
+        {
+            "08:30 - 09:30",
+            "09:30 - 10:30",
+            "10:30 - 11:30",
+            "11:30 - 12:30",
+            "12:30 - 13:30",
+            "13:30 - 14:30",
+            "14:30 - 15:30",
+            "15:30 - 16:30",
+            "16:30 - 17:30",
+            "17:30 - 18:30"
+        },
                 HorariosReferenciais = new Dictionary<string, Dictionary<string, List<HORARIO_REFERENCIAL>>>()
             };
+
+            // Obter o ano letivo atual
+            var anoLetivoAtual = await _context.ANO_LETIVOs.FirstOrDefaultAsync(a => a.ativo);
+            if (anoLetivoAtual == null)
+            {
+                _logger.LogError("Nenhum ano letivo ativo encontrado.");
+                throw new InvalidOperationException("Ano letivo ativo não encontrado.");
+            }
 
             // Obter o ID do utilizador logado
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -225,12 +233,12 @@ namespace HorariosIPBejaMVC.Controllers
             // Identificar os papéis do utilizador
             var roles = User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
 
-            // Carregar Horários Pessoais filtrados com base no papel do utilizador
+            // Carregar Horários Pessoais filtrados com base no papel do utilizador e no ano letivo atual
             List<HORARIO_REFERENCIAL> horariosPessoais;
             if (roles.Contains("Docente"))
             {
                 horariosPessoais = await _context.HORARIO_REFERENCIALs
-                    .Where(h => h.docente_id == userId)
+                    .Where(h => h.docente_id == userId && h.ano_letivo_id == anoLetivoAtual.id)
                     .Include(h => h.uc)
                     .Include(h => h.turma)
                         .ThenInclude(t => t.tipo_aula)
@@ -248,7 +256,7 @@ namespace HorariosIPBejaMVC.Controllers
                     .ToListAsync();
 
                 horariosPessoais = await _context.HORARIO_REFERENCIALs
-                    .Where(h => ucIds.Contains(h.uc_id))
+                    .Where(h => ucIds.Contains(h.uc_id) && h.ano_letivo_id == anoLetivoAtual.id)
                     .Include(h => h.uc)
                     .Include(h => h.turma)
                         .ThenInclude(t => t.tipo_aula)
@@ -288,6 +296,7 @@ namespace HorariosIPBejaMVC.Controllers
 
             return viewModel;
         }
+
 
         private string ObterNomeDiaSemana(string diaSemana)
         {

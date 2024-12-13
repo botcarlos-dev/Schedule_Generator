@@ -15,73 +15,86 @@ else if (!string.IsNullOrEmpty(Model.MensagemResultado))
     <div class="alert alert-success">@Model.MensagemResultado</div>
 }
 
-<!-- Exibição das Soluções de Horários -->
-<div class="accordion" id="horarioAccordion">
-    @for (int i = 0; i < Model.SolucoesHorarios.Count; i++)
-    {
-        var solucaoAtual = Model.SolucoesHorarios[i];
+<!-- Formulário para Seleção de Soluções -->
+<form asp-action="SalvarHorariosSelecionados" method="post">
+    <div class="accordion" id="horarioAccordion">
+        @for (int i = 0; i < Model.SolucoesHorarios.Count; i++)
+        {
+            var solucaoAtual = Model.SolucoesHorarios[i];
 
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="heading-@i">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@i" aria-expanded="true" aria-controls="collapse-@i">
-                    Solução @(@i + 1) <!-- Contagem iniciando em 1 -->
-                </button>
-            </h2>
-            <div id="collapse-@i" class="accordion-collapse collapse @(i == 0 ? "show" : "")" aria-labelledby="heading-@i" data-bs-parent="#horarioAccordion">
-                <div class="accordion-body">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Período / Dia</th>
-                                @foreach (var dia in Model.DiasDaSemana)
-                                {
-                                    <th>@dia</th>
-                                }
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var periodo in Model.Periodos)
-                            {
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading-@i">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@i" aria-expanded="true" aria-controls="collapse-@i">
+                        Solução @(@i + 1) <!-- Contagem iniciando em 1 -->
+                    </button>
+                </h2>
+                <div id="collapse-@i" class="accordion-collapse collapse @(i == 0 ? "show" : "")" aria-labelledby="heading-@i" data-bs-parent="#horarioAccordion">
+                    <div class="accordion-body">
+                        <table class="table table-bordered">
+                            <thead>
                                 <tr>
-                                    <td>@periodo</td>
+                                    <th>Período / Dia</th>
                                     @foreach (var dia in Model.DiasDaSemana)
                                     {
-                                        <td>
-                                            @{
-                                                var horarios = solucaoAtual.ContainsKey(dia) && solucaoAtual[dia].ContainsKey(periodo)
-                                                ? solucaoAtual[dia][periodo]
-                                                : null;
-                                            }
-
-                                            @if (horarios != null && horarios.Count > 0)
-                                            {
-                                                foreach (var item in horarios) // Exibe todas as aulas do período
-                                                {
-                                                    <div class="mb-2">
-                                                        <strong>UC:</strong> @item.uc.nome<br />
-                                                        <strong>Docente:</strong> @item.docente.Nome<br />
-                                                        <strong>Sala:</strong> @item.sala.nome<br />
-                                                        <strong>Tipo de Aula:</strong> @item.turma.tipo_aula.descricao<br />
-                                                        <strong>Turma:</strong> @item.turma.turma_label
-                                                    </div>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <span>Vazio</span>
-                                            }
-                                        </td>
+                                        <th>@dia</th>
                                     }
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
-                    <form asp-action="SalvarHorarioSelecionado" method="post">
-                        <input type="hidden" name="solucaoIndex" value="@i" />
-                        <button type="submit" class="btn btn-primary mt-3">Salvar Esta Solução</button>
-                    </form>
+                            </thead>
+                            <tbody>
+                                @foreach (var periodo in Model.Periodos)
+                                {
+                                    <tr>
+                                        <td>@periodo</td>
+                                        @foreach (var dia in Model.DiasDaSemana)
+                                        {
+                                            <td>
+                                                @{
+                                                    var horarios = solucaoAtual.ContainsKey(dia) && solucaoAtual[dia].ContainsKey(periodo)
+                                                    ? solucaoAtual[dia][periodo]
+                                                    : null;
+                                                }
+
+                                                @if (horarios != null && horarios.Count > 0)
+                                                {
+                                                    <div class="d-flex flex-row align-items-stretch">
+                                                        @foreach (var item in horarios)
+                                                        {
+                                                            <div class="card me-3" style="flex: 1; min-width: 250px;">
+                                                                <div class="card-body">
+                                                                    <h5 class="card-title"><strong>UC:</strong> @item.uc.nome<br /></h5>
+                                                                    <p class="card-text">
+                                                                        <strong>Docente:</strong> @item.docente.Nome<br />
+                                                                        <strong>Sala:</strong> @item.sala.nome<br />
+                                                                        <strong>Tipo de Aula:</strong> @item.turma.tipo_aula.descricao<br />
+                                                                        <strong>Turno:</strong> @item.turma.turma_label
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span>Vazio</span>
+                                                }
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <!-- Checkbox para Seleção da Solução -->
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="solucoesSelecionadas" value="@i" id="solucao-@i">
+                            <label class="form-check-label" for="solucao-@i">
+                                Selecionar esta solução
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    }
-</div>
+        }
+    </div>
+    <!-- Botão para Gravar as Soluções Selecionadas -->
+    <button type="submit" class="btn btn-primary mt-4">Salvar Soluções Selecionadas</button>
+</form>

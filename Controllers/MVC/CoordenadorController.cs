@@ -171,11 +171,10 @@ namespace HorariosIPBejaMVC.Controllers
         /// </remarks>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SalvarHorarioSelecionado(int solucaoIndex)
+        public async Task<IActionResult> SalvarHorariosSelecionados(List<int> solucoesSelecionadas)
         {
             try
             {
-                // Recupera o Id da solução temporária do TempData
                 if (!TempData.ContainsKey("SolucaoTempId"))
                 {
                     TempData["MensagemErro"] = "Nenhuma solução foi encontrada. Por favor, gere os horários novamente.";
@@ -183,8 +182,6 @@ namespace HorariosIPBejaMVC.Controllers
                 }
 
                 int solucaoTempId = (int)TempData["SolucaoTempId"];
-
-                // Recupera a solução temporária da base de dados
                 var solucaoTemp = await _context.SolucaoHorarioTemps.FindAsync(solucaoTempId);
 
                 if (solucaoTemp == null)
@@ -193,27 +190,14 @@ namespace HorariosIPBejaMVC.Controllers
                     return RedirectToAction("GerarHorario");
                 }
 
-                // Desserializa as soluções DTO
-                var solucoesDTO = JsonConvert.DeserializeObject<List<Dictionary<string, Dictionary<string, List<HorarioReferencialDTO>>>>>(solucaoTemp.DadosJson);
-
-                if (solucaoIndex < 0 || solucaoIndex >= solucoesDTO.Count)
+                if (solucoesSelecionadas == null || !solucoesSelecionadas.Any())
                 {
-                    TempData["MensagemErro"] = "Índice da solução inválido selecionado.";
+                    TempData["MensagemErro"] = "Nenhuma solução foi selecionada.";
                     return RedirectToAction("SelecionarHorario");
                 }
 
-                // Seleciona a solução específica
-                var solucaoSelecionadaDTO = solucoesDTO[solucaoIndex];
-
-                // Cria a nova SolucaoHorario
-                var solucaoHorario = new SolucaoHorario
-                {
-                    DataCriacao = DateTime.Now
-                };
-
-                // Adiciona a SolucaoHorario ao contexto para obter o Id
-                _context.SolucaoHorarios.Add(solucaoHorario);
-                await _context.SaveChangesAsync();
+                // Desserializa as soluções DTO
+                var solucoesDTO = JsonConvert.DeserializeObject<List<Dictionary<string, Dictionary<string, List<HorarioReferencialDTO>>>>>(solucaoTemp.DadosJson);
 
                 // **Obter o Ano Letivo Atual**
                 var anoLetivoAtual = await _context.ANO_LETIVOs.FirstOrDefaultAsync(a => a.ativo);
@@ -223,30 +207,47 @@ namespace HorariosIPBejaMVC.Controllers
                     return RedirectToAction("GerarHorario");
                 }
 
-                // Recria os objetos HORARIO_REFERENCIAL
                 var horariosReferenciais = new List<HORARIO_REFERENCIAL>();
 
-                foreach (var dia in solucaoSelecionadaDTO.Keys)
+                foreach (var solucaoIndex in solucoesSelecionadas)
                 {
-                    foreach (var periodo in solucaoSelecionadaDTO[dia].Keys)
+                    if (solucaoIndex < 0 || solucaoIndex >= solucoesDTO.Count)
                     {
-                        var horariosDTO = solucaoSelecionadaDTO[dia][periodo];
+                        TempData["MensagemErro"] = "Índice de solução inválido selecionado.";
+                        return RedirectToAction("SelecionarHorario");
+                    }
 
-                        foreach (var dto in horariosDTO)
+                    var solucaoSelecionadaDTO = solucoesDTO[solucaoIndex];
+
+                    var solucaoHorario = new SolucaoHorario
+                    {
+                        DataCriacao = DateTime.Now
+                    };
+
+                    _context.SolucaoHorarios.Add(solucaoHorario);
+                    await _context.SaveChangesAsync();
+
+                    foreach (var dia in solucaoSelecionadaDTO.Keys)
+                    {
+                        foreach (var periodo in solucaoSelecionadaDTO[dia].Keys)
                         {
-                            var horario = new HORARIO_REFERENCIAL
-                            {
-                                turma_id = dto.turma_id,
-                                sala_id = dto.sala_id,
-                                periodo_horario_id = dto.periodo_horario_id,
-                                uc_id = dto.uc_id,
-                                docente_id = dto.docente_id,
-                                solucaoHorarioId = solucaoHorario.Id,
-                                ano_letivo_id = anoLetivoAtual.id // **Define o ano_letivo_id corretamente**
-                            };
+                            var horariosDTO = solucaoSelecionadaDTO[dia][periodo];
 
-                            // Adicionar o horario à lista
-                            horariosReferenciais.Add(horario);
+                            foreach (var dto in horariosDTO)
+                            {
+                                var horario = new HORARIO_REFERENCIAL
+                                {
+                                    turma_id = dto.turma_id,
+                                    sala_id = dto.sala_id,
+                                    periodo_horario_id = dto.periodo_horario_id,
+                                    uc_id = dto.uc_id,
+                                    docente_id = dto.docente_id,
+                                    solucaoHorarioId = solucaoHorario.Id,
+                                    ano_letivo_id = anoLetivoAtual.id // **Define o ano_letivo_id corretamente**
+                                };
+
+                                horariosReferenciais.Add(horario);
+                            }
                         }
                     }
                 }
@@ -259,13 +260,13 @@ namespace HorariosIPBejaMVC.Controllers
                 _context.SolucaoHorarioTemps.Remove(solucaoTemp);
                 await _context.SaveChangesAsync();
 
-                TempData["MensagemSucesso"] = "Solução salva com sucesso!";
+                TempData["MensagemSucesso"] = "Soluções salvas com sucesso!";
                 return RedirectToAction("GerarHorario");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao salvar a solução selecionada.");
-                TempData["MensagemErro"] = "Ocorreu um erro ao salvar a solução.";
+                _logger.LogError(ex, "Erro ao salvar as soluções selecionadas.");
+                TempData["MensagemErro"] = "Ocorreu um erro ao salvar as soluções.";
                 return RedirectToAction("GerarHorario");
             }
         }

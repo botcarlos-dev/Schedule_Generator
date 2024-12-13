@@ -43,3 +43,38 @@ body {
     background-color: #6c757d; 
 }
 
+
+
+/* Estilo de zebra para colunas */
+.table tbody tr td:nth-child(odd) {
+    background-color: #f2f2f2; /* Cinza claro */
+}
+
+.table tbody tr td:nth-child(even) {
+    background-color: #ffffff; /* Branco */
+}
+
+/* Cabeçalhos mantêm o contraste */
+.table thead th {
+    background-color: #343a40;
+    color: white;
+    text-align: center;
+}
+
+}
+
+/* Garantir que o texto seja legível */
+.table tbody td {
+    color: #000; /* Cor do texto */
+    text-align: center; /* Centralizar texto */
+}
+
+.card {
+    border: 1px solid #ddd;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+}
+
+.card-body {
+    text-align: left;
+}

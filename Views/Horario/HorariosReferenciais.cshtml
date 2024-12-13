@@ -139,37 +139,51 @@ else if (!string.IsNullOrEmpty(Model.MensagemResultado))
                             @if (Model.HorariosReferenciais.ContainsKey(dia) && Model.HorariosReferenciais[dia].ContainsKey(periodo))
                             {
                                 var horarios = Model.HorariosReferenciais[dia][periodo];
-
-                                // Utilizar um HashSet para rastrear IDs já exibidos
                                 var horariosExibidos = new HashSet<int>();
 
                                 if (horarios != null && horarios.Any())
                                 {
-                                    foreach (var horario in horarios)
-                                    {
-                                        if (!horariosExibidos.Contains(horario.id))
+                                    <div class="d-flex flex-row align-items-stretch">
+                                        @foreach (var horario in horarios)
                                         {
-                                            <div class="mb-2">
-                                                <strong>UC:</strong> @(horario.uc?.nome ?? "N/A")<br />
-                                                <strong>Docente:</strong> @(horario.docente?.Nome ?? "N/A")<br />
-                                                <strong>Sala:</strong> @(horario.sala?.nome ?? "N/A")<br />
-                                                <strong>Tipo de Aula:</strong> @(horario.turma?.tipo_aula?.descricao ?? "N/A")<br />
-                                                <strong>Turma:</strong> @(horario.turma?.turma_label ?? "N/A")
-                                            </div>
-                                            horariosExibidos.Add(horario.id);
+                                            if (!horariosExibidos.Contains(horario.id))
+                                            {
+                                                <div class="card me-3" style="flex: 1; min-width: 250px;">
+                                                    <div class="card-body">
+                                                        <h5 class="card-title">@("UC: " + (horario.uc?.nome ?? "N/A"))</h5>
+                                                        <p class="card-text">
+                                                            <strong>Docente:</strong> @(horario.docente?.Nome ?? "N/A")<br />
+                                                            <strong>Sala:</strong> @(horario.sala?.nome ?? "N/A")<br />
+                                                            <strong>Tipo de Aula:</strong> @(horario.turma?.tipo_aula?.descricao ?? "N/A")<br />
+                                                            <strong>Turno:</strong> @(horario.turma?.turma_label ?? "N/A")
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                horariosExibidos.Add(horario.id);
+                                            }
                                         }
-                                    }
+                                    </div>
                                 }
                                 else
                                 {
-                                    <div>Vazio</div>
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="card-text">Vazio</p>
+                                        </div>
+                                    </div>
                                 }
                             }
                             else
                             {
-                                <div>Vazio</div>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <p class="card-text">Vazio</p>
+                                    </div>
+                                </div>
                             }
                         </td>
+
+
                     }
                 </tr>
             }
